@@ -22,12 +22,12 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 .money{display:grid;grid-template-columns:1fr 210px;gap:8px;max-width:460px;margin-left:auto}.money div{padding:5px 0}.money .total{font-size:18px;font-weight:800;border-top:1px solid var(--line);padding-top:10px}
 .checks{display:grid;gap:10px}.check{display:flex;gap:10px;align-items:flex-start}.check input{width:18px;height:18px;accent-color:#20242b;margin-top:2px;flex:none}
 .terms{padding-left:20px}.terms li{margin:9px 0}.notice{padding:12px 14px;background:#fff8e9;border:1px solid #f1dfb9;border-radius:9px;color:#6d501c}
-.signature{border:1px dashed #aab1bb;border-radius:9px;background:#fff;width:100%;height:170px;touch-action:none}
+.signature{display:block;border:1px dashed #aab1bb;border-radius:9px;background:#fff;width:100%;height:auto;aspect-ratio:1000/440;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .sig-actions{display:flex;gap:8px;margin-top:7px}.signature[aria-disabled="true"]{background:#f7f8fa}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 .hidden{display:none!important}.readonly-note{font-size:12px;color:var(--muted);margin:0 0 12px}
 .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rolebar select{padding:9px;border-radius:8px;border:1px solid #555;background:#252930;color:#fff}
-.pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode main{max-width:none;margin:0;padding:0 2px}.pdf-mode table{min-width:0!important;table-layout:fixed;width:100%}.pdf-mode td,.pdf-mode th{word-break:break-word}.pdf-mode .panel{box-shadow:none}.pdf-mode .rolebar{display:none!important}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
+.pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode main{max-width:none;margin:0;padding:0 2px}.pdf-mode table{min-width:0!important;table-layout:auto;width:100%}.pdf-mode td,.pdf-mode th{word-break:break-word}.pdf-mode .panel{box-shadow:none}.pdf-mode .rolebar{display:none!important}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
 @media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.money{grid-template-columns:1fr 140px}header{padding:16px}.panel{padding:15px}h1{font-size:21px}}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.toolbar button{flex:1}}
 @media print{body{background:#fff}header{background:#fff;color:#111;padding:10px 0;border-bottom:2px solid #222}header .rolebar,.toolbar,.no-print,.sig-actions{display:none!important}main{margin:0;padding:0;max-width:none}.panel{box-shadow:none;break-inside:avoid;border:1px solid #ddd}.field input,.field textarea{border:0;padding-left:0}.status{border:1px solid #999}.signature{border:1px solid #888}}
@@ -131,7 +131,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
       <div class="field"><label>Tanggal Persetujuan</label><input id="signDate" type="date"></div>
     </div>
     <h3>Tanda Tangan Digital Pemesan</h3>
-    <canvas id="signature" class="signature" width="1000" height="260"></canvas>
+    <canvas id="signature" class="signature" width="1000" height="440"></canvas>
     <div class="sig-actions no-print"><button class="secondary" id="clearSig">Hapus Tanda Tangan</button><span class="sub" style="font-size:12px;align-self:center">Gunakan jari, mouse, atau stylus.</span></div>
     <p class="sub" style="font-size:11px">Tanda tangan digital dan identitas di atas menjadi bagian dari catatan persetujuan order ini.</p>
   </section>
@@ -159,7 +159,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 const $=id=>document.getElementById(id);
 const rupiah=n=>'Rp'+(Number(n)||0).toLocaleString('id-ID');
 let approved=false, signatureDirty=false, drawing=false, last=null;
-const PDF_W=1100; // lebar tetap (px) untuk membuat PDF, tidak tergantung lebar layar perangkat
+const PDF_W=820; // lebar tetap (px) untuk membuat PDF, tidak tergantung lebar layar perangkat
 function buildPdfRoot(){
  const root=document.createElement('div');root.className='pdf-root';
  root.style.cssText='position:absolute;left:0;top:0;width:'+PDF_W+'px;background:#f4f6f8;color:#20242b;font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif';
@@ -175,7 +175,7 @@ function buildPdfRoot(){
   const ob=[...src.querySelectorAll('input[type=checkbox]')],kb=[...c.querySelectorAll('input[type=checkbox]')];
   kb.forEach((el,n)=>{el.checked=ob[n].checked;if(ob[n].checked)el.setAttribute('checked','');else el.removeAttribute('checked')});
   const oc=[...src.querySelectorAll('canvas')],kc=[...c.querySelectorAll('canvas')];
-  kc.forEach((el,n)=>{const im=document.createElement('img');im.src=oc[n].toDataURL();im.className=el.className;im.style.cssText='display:block;width:100%;height:170px;object-fit:contain';el.replaceWith(im)});
+  kc.forEach((el,n)=>{const im=document.createElement('img');im.src=oc[n].toDataURL();im.className=el.className;im.style.cssText='display:block;width:100%;height:auto';el.replaceWith(im)});
   root.appendChild(c);
  });
  document.body.appendChild(root);return root;
@@ -190,18 +190,20 @@ async function makePdfBlob(){
   window.scrollTo(0,0);
   root=buildPdfRoot();
   await new Promise(r=>setTimeout(r,150)); // beri waktu browser menata lembar kerja
-  const canvas=await html2canvas(root,{scale:1.5,width:PDF_W,windowWidth:PDF_W,scrollX:0,scrollY:0,backgroundColor:'#ffffff',useCORS:true,logging:false});
-  const k=canvas.width/PDF_W,rr=root.getBoundingClientRect();
-  const cuts=[...root.querySelectorAll('.panel,tr,.signature,.money')].map(e=>Math.round((e.getBoundingClientRect().bottom-rr.top)*k)).filter(y=>y>0).sort((a,b)=>a-b);
-  const PW=297,PH=210,M=6,iw=PW-2*M,ih=PH-2*M,mm=iw/canvas.width,pagePx=Math.floor(ih/mm);
-  const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  let cuts=[];const SC=2;
+  const canvas=await html2canvas(root,{scale:SC,width:PDF_W,windowWidth:PDF_W,scrollX:0,scrollY:0,backgroundColor:'#ffffff',useCORS:true,logging:false,onclone:doc=>{
+   const r=doc.querySelector('.pdf-root');if(!r)return;const rt=r.getBoundingClientRect().top;
+   cuts=[...r.querySelectorAll('.panel,tbody tr,.signature,.money,.check,.terms li')].map(e=>Math.round((e.getBoundingClientRect().bottom-rt)*SC)).filter(v=>v>0).sort((a,b)=>a-b);
+  }});
+  const PW=210,PH=148,M=6,iw=PW-2*M,ih=PH-2*M,mm=iw/canvas.width,pagePx=Math.floor(ih/mm);
+  const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a5'});
   let y=0,first=true;
   while(y<canvas.height-2){
    let end=Math.min(y+pagePx,canvas.height);
    if(end<canvas.height){const c=cuts.filter(v=>v>y+pagePx*0.35&&v<=end).pop();if(c)end=c}
    const h=end-y,part=document.createElement('canvas');part.width=canvas.width;part.height=h;
    const cx=part.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,part.width,h);cx.drawImage(canvas,0,y,canvas.width,h,0,0,canvas.width,h);
-   if(!first)pdf.addPage('a4','landscape');first=false;
+   if(!first)pdf.addPage('a5','landscape');first=false;
    pdf.addImage(part.toDataURL('image/jpeg',0.92),'JPEG',M,M,iw,h*mm);
    y=end;
   }
@@ -229,7 +231,7 @@ function load(o){
  Object.keys(o).forEach(k=>{let e=$(k);if(e&&typeof o[k]==='string')e.value=o[k]});
  $('items').innerHTML='';(o.items||[]).forEach(addRow);if(!(o.items||[]).length)addRow();
  document.querySelectorAll('.customer-check').forEach((e,i)=>e.checked=!!(o.checks||[])[i]);
- approved=!!o.approved;signatureDirty=!!o.sigDirty;if(o.signature){let im=new Image();im.onload=()=>{let c=$('signature').getContext('2d');c.clearRect(0,0,1000,260);c.drawImage(im,0,0,1000,260)};im.src=o.signature}
+ approved=!!o.approved;signatureDirty=!!o.sigDirty;if(o.signature){let im=new Image();im.onload=()=>{let c=$('signature').getContext('2d');c.clearRect(0,0,c.canvas.width,c.canvas.height);c.drawImage(im,0,0,c.canvas.width,c.canvas.height)};im.src=o.signature}
  updateStatus();calc();applyRole();
 }
 function updateStatus(){$('status').textContent=approved?'FINAL APPROVED · TERKUNCI':'DRAFT · MENUNGGU PERSETUJUAN';$('status').className='status'+(approved?' approved':'');$('approvalState').value=approved?'Final Approved':'Menunggu persetujuan pemesan';$('orderLabel').textContent=$('orderNo').value||'-'}
@@ -243,13 +245,26 @@ function applyRole(){
 }
 $('addItem').onclick=()=>{if(!approved)addRow()};
 const newOrderNo=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return 'FRS-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
-function clearSig(){let c=$('signature').getContext('2d');c.clearRect(0,0,1000,260);signatureDirty=false}
+function clearSig(){let c=$('signature').getContext('2d');c.clearRect(0,0,c.canvas.width,c.canvas.height);signatureDirty=false}
 $('clearSig').onclick=clearSig;
 const canvas=$('signature'),ctx=canvas.getContext('2d');ctx.strokeStyle='#111';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
 function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
-canvas.addEventListener('pointerdown',e=>{if($('role').value!=='customer'||approved)return;drawing=true;last=point(e);canvas.setPointerCapture(e.pointerId)});
-canvas.addEventListener('pointermove',e=>{if(!drawing)return;let p=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;signatureDirty=true});
-['pointerup','pointercancel','pointerleave'].forEach(ev=>canvas.addEventListener(ev,()=>drawing=false));
+const canSign=()=>$('role').value==='customer'&&!approved;
+canvas.addEventListener('pointerdown',e=>{
+ if(!canSign())return;e.preventDefault();drawing=true;last=point(e);
+ const r=canvas.getBoundingClientRect();ctx.lineWidth=Math.max(3,3.2*canvas.width/r.width); // tebal garis tetap terlihat di layar kecil
+ try{canvas.setPointerCapture(e.pointerId)}catch{}
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!drawing)return;e.preventDefault();
+ const evs=(e.getCoalescedEvents&&e.getCoalescedEvents())||[];
+ for(const ev of (evs.length?evs:[e])){const p=point(ev);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p}
+ signatureDirty=true;
+});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>canvas.addEventListener(ev,()=>{drawing=false}));
+// cadangan untuk browser HP lama: cegah halaman ikut bergeser saat menggambar
+['touchstart','touchmove'].forEach(ev=>canvas.addEventListener(ev,e=>{if(canSign())e.preventDefault()},{passive:false}));
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
 const ENDPOINT='https://script.google.com/macros/s/AKfycbwPyI_Z0svGpKznnd3jsJdtj0zJ-b2-7SsVXKeVE3wdSUG6gzEBVn5QOgc9DMpcjr8E0g/exec'; // URL server penyimpanan (opsional) - harus SAMA di file pemesan & file penyimpanan
 const FersansStore={
  db(){return this._db||(this._db=new Promise((res,rej)=>{const r=indexedDB.open('fersans-orders',1);r.onupgradeneeded=()=>r.result.createObjectStore('orders',{keyPath:'orderNo'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
