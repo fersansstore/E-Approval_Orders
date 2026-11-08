@@ -57,7 +57,7 @@ td input:disabled{background:#f7f8fa;color:#394150;-webkit-text-fill-color:#3941
     <div class="grid">
       <div class="field"><label>Nomor Order</label><input id="orderNo" value="" readonly></div>
       <div class="field"><label>Tanggal Order</label><input id="orderDate" type="date"></div>
-      <div class="field"><label>Target Penyelesaian</label><input id="dueDate" type="date" disabled></div>
+      <div class="field"><label>Target Penyelesaian (ditetapkan penyedia)</label><input id="dueDate" type="date" disabled></div>
       <div class="field"><label>Kepada / Nama Pemesan</label><input id="customerName" placeholder="Nama pemesan / instansi"></div>
       <div class="field"><label>Nama Perusahaan / Instansi</label><input id="company" placeholder="Nama instansi"></div>
       <div class="field"><label>Kontak Pemesan</label><input id="contact" placeholder="No. HP / email"></div>
@@ -258,9 +258,9 @@ function applyRole(){
  const L=approved;
  /* === Detail Pesanan & Pembayaran SELALU read-only di form pemesan === */
  document.querySelectorAll('#items input').forEach(e=>e.disabled=true);
- ['discount','extra','paymentMethod','paymentStatus','paid','paymentRef','orderNotes'].forEach(id=>{if($(id))$(id).disabled=true});
+ ['discount','extra','paymentMethod','paymentStatus','paid','paymentRef','orderNotes','dueDate'].forEach(id=>{if($(id))$(id).disabled=true});
  /* === Data pemesan & tanda tangan tetap bisa diisi sampai approved === */
- ['orderDate','dueDate','customerName','company','contact','signerName','signerTitle','signDate'].forEach(id=>$(id).disabled=L);
+ ['orderDate','customerName','company','contact','signerName','signerTitle','signDate'].forEach(id=>$(id).disabled=L);
  document.querySelectorAll('.customer-check').forEach(e=>e.disabled=L);
  $('signature').style.pointerEvents=L?'none':'auto';$('signature').setAttribute('aria-disabled',String(L));
  $('clearSig').disabled=L;$('approveBtn').disabled=L;updateStatus();
