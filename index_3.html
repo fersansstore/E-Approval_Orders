@@ -38,7 +38,7 @@ input{border:1px solid var(--line);border-radius:7px;padding:9px 10px;font:inher
 <script>
 const $=id=>document.getElementById(id);
 const SESS='fersans-storage-auth';
-const ENDPOINT='https://script.google.com/macros/s/AKfycbzUQJ6ew9XHSRSdxAsJgcV-iBBAzEbmq4pN_9_lJBmOAkEg87sCSG3mv5ZEH-ToGLPlnA/exec'; // <- tempel URL Web App Apps Script (berakhiran /exec). Harus SAMA dengan ENDPOINT di index_2.html
+const ENDPOINT='https://script.google.com/macros/s/AKfycbwPyI_Z0svGpKznnd3jsJdtj0zJ-b2-7SsVXKeVE3wdSUG6gzEBVn5QOgc9DMpcjr8E0g/exec'; // <- tempel URL Web App Apps Script (berakhiran /exec). Harus SAMA dengan ENDPOINT di index_2.html
 let AUTH=null,orders=[],busy=false;
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rupiah=n=>'Rp'+(Number(n)||0).toLocaleString('id-ID');
