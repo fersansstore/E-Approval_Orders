@@ -28,6 +28,15 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 .hidden{display:none!important}.readonly-note{font-size:12px;color:var(--muted);margin:0 0 12px}
 .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rolebar select{padding:9px;border-radius:8px;border:1px solid #555;background:#252930;color:#fff}
 .pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode main{max-width:none;margin:0;padding:0 2px}.pdf-mode table{min-width:0!important;table-layout:auto;width:100%}.pdf-mode td,.pdf-mode th{word-break:break-word}.pdf-mode .panel{box-shadow:none}.pdf-mode .rolebar{display:none!important}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
+
+/* Tambahan spasi pengaman khusus area tanda tangan agar tidak terpotong di PDF A5 */
+.signature-panel {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  padding-top: 15px;
+  margin-top: 25px;
+}
+
 @media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.money{grid-template-columns:1fr 140px}header{padding:16px}.panel{padding:15px}h1{font-size:21px}}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.toolbar button{flex:1}}
 @media print{body{background:#fff}header{background:#fff;color:#111;padding:10px 0;border-bottom:2px solid #222}header .rolebar,.toolbar,.no-print,.sig-actions{display:none!important}main{margin:0;padding:0;max-width:none}.panel{box-shadow:none;break-inside:avoid;border:1px solid #ddd}.field input,.field textarea{border:0;padding-left:0}.status{border:1px solid #999}.signature{border:1px solid #888}}
@@ -44,18 +53,18 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
       <div><h1>ORDER SERAGAM</h1><div class="sub">Formulir detail pesanan & persetujuan spesifikasi</div></div>
       <div style="text-align:right"><span id="status" class="status">DRAFT · MENUNGGU PERSETUJUAN</span><div class="sub" style="font-size:11px;margin-top:7px">Nomor Order: <b id="orderLabel">FRS-0001</b></div></div>
     </div>
-    <p class="readonly-note" id="customerHint">Mode pemesan: isi seluruh data pesanan, lengkapi persetujuan dan tanda tangan, lalu kirim order di bagian paling bawah. Nomor order dibuat otomatis.</p>
+    <p class="readonly-note" id="customerHint">Mode pemesan: periksa seluruh data pesanan, lengkapi persetujuan dan tanda tangan, lalu kirim order di bagian paling bawah.</p>
   </section>
 
   <section class="panel">
     <h2>Informasi Pemesanan</h2>
     <div class="grid">
       <div class="field"><label>Nomor Order</label><input id="orderNo" value="" readonly></div>
-      <div class="field"><label>Tanggal Order</label><input id="orderDate" type="date"></div>
-      <div class="field"><label>Target Penyelesaian</label><input id="dueDate" type="date"></div>
-      <div class="field"><label>Kepada / Nama Pemesan</label><input id="customerName" placeholder="Nama pemesan / instansi"></div>
-      <div class="field"><label>Nama Perusahaan / Instansi</label><input id="company" placeholder="Nama instansi"></div>
-      <div class="field"><label>Kontak Pemesan</label><input id="contact" placeholder="No. HP / email"></div>
+      <div class="field"><label>Tanggal Order</label><input id="orderDate" type="date" readonly></div>
+      <div class="field"><label>Target Penyelesaian</label><input id="dueDate" type="date" readonly></div>
+      <div class="field"><label>Kepada / Nama Pemesan</label><input id="customerName" placeholder="Nama pemesan / instansi" readonly></div>
+      <div class="field"><label>Nama Perusahaan / Instansi</label><input id="company" placeholder="Nama instansi" readonly></div>
+      <div class="field"><label>Kontak Pemesan</label><input id="contact" placeholder="No. HP / email" readonly></div>
     </div>
     <h3>Informasi Penyedia</h3>
     <div class="grid">
@@ -65,14 +74,15 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
     </div>
   </section>
 
+  <!-- Bagian Detail Pesanan Seragam dikunci (readonly untuk customer) -->
   <section class="panel">
     <h2>Detail Pesanan Seragam</h2>
     <div class="tablewrap"><table id="itemsTable"><thead><tr><th style="width:23%">Nama / Deskripsi</th><th>SKU</th><th>Qty</th><th>Satuan</th><th>Harga</th><th>Total</th><th class="provider-only">Aksi</th></tr></thead><tbody id="items"></tbody></table></div>
-    <div class="toolbar no-print provider-only" style="margin:12px 0 0"><button class="secondary" id="addItem">＋ Tambah Item</button></div>
+    <div class="toolbar no-print provider-only" style="margin:12px 0 0"><button class="secondary" id="addItem" disabled>＋ Tambah Item</button></div>
     <div class="money">
       <div>Subtotal</div><div id="subtotal">Rp0</div>
-      <div>Diskon</div><div class="field"><input id="discount" type="number" min="0" value="0"></div>
-      <div>Biaya tambahan</div><div class="field"><input id="extra" type="number" min="0" value="0"></div>
+      <div>Diskon</div><div class="field"><input id="discount" type="number" min="0" value="0" readonly></div>
+      <div>Biaya tambahan</div><div class="field"><input id="extra" type="number" min="0" value="0" readonly></div>
       <div class="total">Total</div><div class="total" id="grandTotal">Rp0</div>
     </div>
   </section>
@@ -80,9 +90,9 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
   <section class="panel">
     <h2>Pembayaran</h2>
     <div class="grid">
-      <div class="field"><label>Status Pembayaran</label><select id="paymentStatus"><option>Belum Bayar</option><option>DP (Down Payment)</option><option>Lunas</option></select></div>
-      <div class="field"><label>Nominal DP / Pembayaran</label><input id="paid" type="number" min="0" value="0"></div>
-      <div class="field"><label>Referensi Pembayaran</label><input id="paymentRef" placeholder="Nomor referensi (opsional)"></div>
+      <div class="field"><label>Status Pembayaran</label><select id="paymentStatus" disabled><option>Belum Bayar</option><option>DP (Down Payment)</option><option>Lunas</option></select></div>
+      <div class="field"><label>Nominal DP / Pembayaran</label><input id="paid" type="number" min="0" value="0" readonly></div>
+      <div class="field"><label>Referensi Pembayaran</label><input id="paymentRef" placeholder="Nomor referensi (opsional)" readonly></div>
     </div>
     <div class="money"><div>Sudah Dibayar</div><div id="paidView">Rp0</div><div>Sisa Pembayaran</div><div id="balance">Rp0</div></div>
     <p class="sub" style="font-size:12px">Pembayaran via Bank: BCA 289 107 1649 · BRI 0070 0100 3106 569 (a.n. MOHAMMAD ATHA AMMAR)</p>
@@ -115,7 +125,8 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
     <div class="notice"><b>Perhatian:</b> Mohon periksa kembali seluruh detail pesanan. Setelah disetujui, data spesifikasi akan dikunci sebagai acuan produksi.</div>
   </section>
 
-  <section class="panel">
+  <!-- Panel Tanda Tangan diberi kelas signature-panel untuk mencegah terpotong di PDF -->
+  <section class="panel signature-panel">
     <h2>C. Pernyataan Persetujuan Pemesan</h2>
     <p>Saya menyatakan bahwa seluruh detail pesanan, termasuk model, desain, warna, bahan, jumlah, dan ukuran telah diperiksa dengan benar.</p>
     <p>Saya telah membaca, memahami, dan menyetujui seluruh ketentuan yang tercantum dalam formulir ini, termasuk ketentuan bahwa model dan ukuran yang telah difinalisasi tidak dapat diubah atau ditukar atas permintaan pemesan.</p>
@@ -214,18 +225,16 @@ const today=new Date().toISOString().slice(0,10);
 $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;
 function addRow(item={name:'',sku:'',qty:1,unit:'pcs',price:0}){
  const tr=document.createElement('tr');
- tr.innerHTML=`<td><input data-k="name" placeholder="Nama / deskripsi"></td><td><input data-k="sku" placeholder="SKU"></td><td><input data-k="qty" type="number" min="0" value="1"></td><td><input data-k="unit" value="pcs"></td><td><input data-k="price" type="number" min="0" value="0"></td><td class="rowtotal">Rp0</td><td class="provider-only"><button class="danger remove">Hapus</button></td>`;
- tr.querySelectorAll('[data-k]').forEach(el=>{el.value=item[el.dataset.k]??'';el.addEventListener('input',calc)});
- tr.querySelector('.remove').addEventListener('click',()=>{tr.remove();calc()});
+ tr.innerHTML=`<td><input data-k="name" placeholder="Nama / deskripsi" readonly></td><td><input data-k="sku" placeholder="SKU" readonly></td><td><input data-k="qty" type="number" min="0" value="1" readonly></td><td><input data-k="unit" value="pcs" readonly></td><td><input data-k="price" type="number" min="0" value="0" readonly></td><td class="rowtotal">Rp0</td><td class="provider-only" style="display:none"><button class="danger remove" disabled>Hapus</button></td>`;
+ tr.querySelectorAll('[data-k]').forEach(el=>{el.value=item[el.dataset.k]??'';el.disabled=true;});
  $('items').appendChild(tr);calc();
 }
-function getItems(){return [...$('items').rows].map(r=>Object.fromEntries([...r.querySelectorAll('[data-k]')].map(e=>[e.dataset.k,e.type==='number'?Number(e.value):e.value])))}
+function getItems(){return [...$('items'].rows].map(r=>Object.fromEntries([...r.querySelectorAll('[data-k]')].map(e=>[e.dataset.k,e.type==='number'?Number(e.value):e.value])))}
 function calc(){
- let sum=0;[...$('items').rows].forEach(r=>{let q=Number(r.querySelector('[data-k=qty]').value)||0,p=Number(r.querySelector('[data-k=price]').value)||0,t=q*p;sum+=t;r.querySelector('.rowtotal').textContent=rupiah(t)});
+ let sum=0;[...$('items'].rows].forEach(r=>{let q=Number(r.querySelector('[data-k=qty]').value)||0,p=Number(r.querySelector('[data-k=price]').value)||0,t=q*p;sum+=t;r.querySelector('.rowtotal').textContent=rupiah(t)});
  let total=Math.max(0,sum-(Number($('discount').value)||0)+(Number($('extra').value)||0));
  $('subtotal').textContent=rupiah(sum);$('grandTotal').textContent=rupiah(total);$('paidView').textContent=rupiah($('paid').value);$('balance').textContent=rupiah(Math.max(0,total-(Number($('paid').value)||0)));
 }
-['discount','extra','paid'].forEach(id=>$(id).addEventListener('input',calc));
 function fields(){let o={};document.querySelectorAll('main input:not([data-k]):not([type=file]),main select').forEach(e=>{if(e.id)o[e.id]=e.value});o.items=getItems();o.checks=[...document.querySelectorAll('.customer-check')].map(e=>e.checked);o.approved=approved;o.sigDirty=signatureDirty;o.signature=$('signature').toDataURL();return o}
 function load(o){
  Object.keys(o).forEach(k=>{let e=$(k);if(e&&typeof o[k]==='string')e.value=o[k]});
@@ -237,13 +246,12 @@ function load(o){
 function updateStatus(){$('status').textContent=approved?'FINAL APPROVED · TERKUNCI':'DRAFT · MENUNGGU PERSETUJUAN';$('status').className='status'+(approved?' approved':'');$('approvalState').value=approved?'Final Approved':'Menunggu persetujuan pemesan';$('orderLabel').textContent=$('orderNo').value||'-'}
 function applyRole(){
  const L=approved;
- ['orderDate','dueDate','customerName','company','contact','discount','extra','paymentStatus','paid','paymentRef','signerName','signerTitle','signDate'].forEach(id=>$(id).disabled=L);
- document.querySelectorAll('#items input').forEach(e=>e.disabled=L);
+ ['orderDate','dueDate','customerName','company','contact','discount','extra','paymentStatus','paid','paymentRef','signerName','signerTitle','signDate'].forEach(id=>{let el=$(id);if(el)el.disabled=L;});
+ document.querySelectorAll('#items input').forEach(e=>e.disabled=true); // Item pesanan selalu terkunci dari customer
  document.querySelectorAll('.customer-check').forEach(e=>e.disabled=L);
  $('signature').style.pointerEvents=L?'none':'auto';$('signature').setAttribute('aria-disabled',String(L));
- $('clearSig').disabled=L;$('addItem').disabled=L;$('approveBtn').disabled=L;updateStatus();
+ $('clearSig').disabled=L;$('addItem').disabled=true;$('approveBtn').disabled=L;updateStatus();
 }
-$('addItem').onclick=()=>{if(!approved)addRow()};
 const newOrderNo=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return 'FRS-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
 function clearSig(){let c=$('signature').getContext('2d');c.clearRect(0,0,c.canvas.width,c.canvas.height);signatureDirty=false}
 $('clearSig').onclick=clearSig;
@@ -252,7 +260,7 @@ function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.lef
 const canSign=()=>$('role').value==='customer'&&!approved;
 canvas.addEventListener('pointerdown',e=>{
  if(!canSign())return;e.preventDefault();drawing=true;last=point(e);
- const r=canvas.getBoundingClientRect();ctx.lineWidth=Math.max(3,3.2*canvas.width/r.width); // tebal garis tetap terlihat di layar kecil
+ const r=canvas.getBoundingClientRect();ctx.lineWidth=Math.max(3,3.2*canvas.width/r.width);
  try{canvas.setPointerCapture(e.pointerId)}catch{}
 });
 canvas.addEventListener('pointermove',e=>{
@@ -262,10 +270,9 @@ canvas.addEventListener('pointermove',e=>{
  signatureDirty=true;
 });
 ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>canvas.addEventListener(ev,()=>{drawing=false}));
-// cadangan untuk browser HP lama: cegah halaman ikut bergeser saat menggambar
 ['touchstart','touchmove'].forEach(ev=>canvas.addEventListener(ev,e=>{if(canSign())e.preventDefault()},{passive:false}));
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
-const ENDPOINT='https://script.google.com/macros/s/AKfycbwPyI_Z0svGpKznnd3jsJdtj0zJ-b2-7SsVXKeVE3wdSUG6gzEBVn5QOgc9DMpcjr8E0g/exec'; // URL server penyimpanan (opsional) - harus SAMA di file pemesan & file penyimpanan
+const ENDPOINT='https://script.google.com/macros/s/AKfycbwPyI_Z0svGpKznnd3jsJdtj0zJ-b2-7SsVXKeVE3wdSUG6gzEBVn5QOgc9DMpcjr8E0g/exec';
 const FersansStore={
  db(){return this._db||(this._db=new Promise((res,rej)=>{const r=indexedDB.open('fersans-orders',1);r.onupgradeneeded=()=>r.result.createObjectStore('orders',{keyPath:'orderNo'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
  async tx(mode,fn){const d=await this.db();return new Promise((res,rej)=>{const t=d.transaction('orders',mode),q=fn(t.objectStore('orders'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})},
@@ -273,8 +280,8 @@ const FersansStore={
  async push(rec){if(!ENDPOINT)return false;let r,j;
   try{r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)})}catch(e){
    let reach=false;try{await fetch(ENDPOINT,{mode:'no-cors'});reach=true}catch{}
-   throw new Error(reach?'alamat server ditemukan, tetapi Google membalas dengan halaman error (bukan JSON). Penyebab umum: kode Code.gs belum ada di deployment yang aktif (belum "New version"), izin akses belum disetujui, atau akses deployment bukan "Anyone"':'alamat ENDPOINT tidak bisa dijangkau. Periksa penulisannya (harus berakhiran /exec, tanpa spasi) dan koneksi internet')}
-  try{j=await r.json()}catch(e){throw new Error('balasan server bukan JSON (status '+r.status+'). Biasanya deployment belum diizinkan atau belum di-deploy ulang')}
+   throw new Error(reach?'alamat server ditemukan, tetapi Google membalas dengan halaman error (bukan JSON).':'alamat ENDPOINT tidak bisa dijangkau.')}
+  try{j=await r.json()}catch(e){throw new Error('balasan server bukan JSON.')}
   if(!j.ok)throw new Error('server menolak data: '+(j.error||'tidak diketahui'));return true},
  async save(rec){await this.put(rec);try{this.lastErr='';return await this.push(rec)}catch(e){this.lastErr=e.message;return false}}
 };
@@ -282,8 +289,7 @@ const DRAFT='fersans-pemesan-draft';let draftT,lastPdf=null;
 function saveDraft(){if(approved)return;clearTimeout(draftT);draftT=setTimeout(()=>{try{localStorage.setItem(DRAFT,JSON.stringify(fields()))}catch{}},600)}
 document.addEventListener('input',saveDraft);canvas.addEventListener('pointerup',saveDraft);
 $('approveBtn').onclick=async()=>{
- if(!$('customerName').value.trim()){alert('Isi nama pemesan terlebih dahulu.');return}
- if(!getItems().some(i=>String(i.name).trim())){alert('Isi minimal satu item pesanan.');return}
+ if(!getItems().some(i=>String(i.name).trim())){alert('Data item pesanan kosong.');return}
  if([...document.querySelectorAll('.customer-check')].some(e=>!e.checked)){alert('Mohon centang seluruh konfirmasi spesifikasi dan pernyataan persetujuan.');return}
  if(!$('signerName').value.trim()||!$('signDate').value){alert('Isi nama penanggung jawab dan tanggal persetujuan.');return}
  if(!signatureDirty){alert('Mohon bubuhkan tanda tangan digital terlebih dahulu.');return}
@@ -297,9 +303,8 @@ $('approveBtn').onclick=async()=>{
   const rec={orderNo:no,createdAt:new Date().toISOString(),customerName:$('customerName').value,company:$('company').value,contact:$('contact').value,total:Number($('grandTotal').textContent.replace(/\D/g,'')),status:'Final Approved',data:fields(),pdf};const remote=await FersansStore.save(rec);
   try{localStorage.removeItem(DRAFT)}catch{}
   btn.classList.add('hidden');const box=$('doneBox');box.classList.remove('hidden');
-  box.innerHTML='<b>Order berhasil disetujui.</b> Nomor order: <b>'+no+'</b>. PDF tersimpan otomatis.'+(remote?' Data terkirim ke server penyimpanan.':(ENDPOINT?' <b style="color:#b42318">Gagal terkirim ke server</b>, data tersimpan di perangkat ini. <button class="secondary" id="retryBtn" style="padding:4px 10px">Kirim ulang</button>':' (Tersimpan di perangkat ini; server penyimpanan belum diatur.)'))+'<div class="toolbar" style="margin:10px 0 0"><button class="gold" id="shareBtn">Kirim PDF via WhatsApp / Bagikan</button><button class="secondary" id="newOrderBtn">Buat Order Baru</button></div>';
+  box.innerHTML='<b>Order berhasil disetujui.</b> Nomor order: <b>'+no+'</b>. PDF tersimpan otomatis.'+(remote?' Data terkirim ke server penyimpanan.':(ENDPOINT?' <b style="color:#b42318">Gagal terkirim ke server</b>, data tersimpan di perangkat ini. <button class="secondary" id="retryBtn" style="padding:4px 10px">Kirim ulang</button>':' (Tersimpan di perangkat ini.)'))+'<div class="toolbar" style="margin:10px 0 0"><button class="gold" id="shareBtn">Kirim PDF via WhatsApp / Bagikan</button><button class="secondary" id="newOrderBtn">Buat Order Baru</button></div>';
   if(!remote&&ENDPOINT&&FersansStore.lastErr){const d=document.createElement('div');d.style.cssText='margin-top:8px;font-size:12px;color:#b42318';d.textContent='Penyebab: '+FersansStore.lastErr;box.appendChild(d)}
-  {const v=document.createElement('div');v.style.cssText='margin-top:6px;font-size:11px;color:#9aa1ad';v.textContent='Versi form: r4 (PDF A4 landscape)';box.appendChild(v)}
   $('newOrderBtn').onclick=()=>location.reload();
   if($('retryBtn'))$('retryBtn').onclick=async()=>{const b=$('retryBtn');b.disabled=true;b.textContent='Mengirim…';try{await FersansStore.push(rec);b.outerHTML='<b style="color:#18794e">Terkirim ✓</b>'}catch(e){b.disabled=false;b.textContent='Kirim ulang';alert('Masih gagal terkirim: '+e.message)}};
   $('shareBtn').onclick=async()=>{const f=new File([lastPdf],no+'.pdf',{type:'application/pdf'});
@@ -308,18 +313,17 @@ $('approveBtn').onclick=async()=>{
    window.open('https://wa.me/6281319273290?text='+encodeURIComponent('Halo FERSANS, berikut file E-Approval Order '+no+' (PDF terlampir).'),'_blank')};
  }catch(err){document.body.classList.remove('pdf-mode');document.querySelectorAll('.pdf-root').forEach(e=>e.remove());approved=false;applyRole();btn.textContent='Setujui & Kunci Order';alert('Gagal membuat/mengirim PDF: '+err.message)}
 };
-// --- Data kiriman admin (dari tombol "Ekspor Data Order" di index_1.html) ---
 function readHandoff(){
  let o=null,src='';
  try{const m=location.hash.match(/^#d=([\w-]+)/);if(m){let b=m[1].replace(/-/g,'+').replace(/_/g,'/');while(b.length%4)b+='=';const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);o=JSON.parse(new TextDecoder().decode(u));src=m[1]}}catch{}
  if(!o){try{const h=JSON.parse(localStorage.getItem('fersans-handoff'));if(h&&Date.now()-h.t<10*60*1000){o=h.data;src='ls'+h.t}}catch{}}
  try{localStorage.removeItem('fersans-handoff')}catch{}
- return o?{o,src}:null; // hash link TIDAK dihapus, supaya link tetap bisa dibuka ulang
+ return o?{o,src}:null;
 }
 const HH=readHandoff(),H=HH&&HH.o;
 let d=null;try{d=JSON.parse(localStorage.getItem(DRAFT))}catch{}
 let sameLink=false;try{sameLink=!!HH&&localStorage.getItem('fersans-draft-src')===HH.src}catch{}
-if(H&&sameLink&&d&&!d.approved){load(d)} // link yang sama dibuka ulang: lanjutkan isian pemesan
+if(H&&sameLink&&d&&!d.approved){load(d)}
 else if(H){
  ['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentStatus','paid','paymentRef','providerName','providerDate'].forEach(k=>{if(H[k]!=null&&$(k))$(k).value=H[k]});
  if(H.orderNo==='FRS-0001')$('orderNo').value='';
