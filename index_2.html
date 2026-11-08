@@ -208,7 +208,7 @@ function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.lef
 canvas.addEventListener('pointerdown',e=>{if($('role').value!=='customer'||approved)return;drawing=true;last=point(e);canvas.setPointerCapture(e.pointerId)});
 canvas.addEventListener('pointermove',e=>{if(!drawing)return;let p=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;signatureDirty=true});
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>canvas.addEventListener(ev,()=>drawing=false));
-const ENDPOINT='https://script.google.com/macros/library/d/132daTZ-zexD6RqKF2Km7xjOFG2bZJj97SlqkCzEu3bl8lEoX6RU-aU3x/2'; // URL server penyimpanan (opsional) - harus SAMA di file pemesan & file penyimpanan
+const ENDPOINT='https://script.google.com/macros/s/AKfycbzUQJ6ew9XHSRSdxAsJgcV-iBBAzEbmq4pN_9_lJBmOAkEg87sCSG3mv5ZEH-ToGLPlnA/exec'; // URL server penyimpanan (opsional) - harus SAMA di file pemesan & file penyimpanan
 const FersansStore={
  db(){return this._db||(this._db=new Promise((res,rej)=>{const r=indexedDB.open('fersans-orders',1);r.onupgradeneeded=()=>r.result.createObjectStore('orders',{keyPath:'orderNo'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
  async tx(mode,fn){const d=await this.db();return new Promise((res,rej)=>{const t=d.transaction('orders',mode),q=fn(t.objectStore('orders'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})},
