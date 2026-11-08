@@ -27,7 +27,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 .hidden{display:none!important}.readonly-note{font-size:12px;color:var(--muted);margin:0 0 12px}
 .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rolebar select{padding:9px;border-radius:8px;border:1px solid #555;background:#252930;color:#fff}
-.pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode main{max-width:none;margin:0;padding:0 2px}.pdf-mode table{min-width:0!important;table-layout:fixed;width:100%}.pdf-mode td,.pdf-mode th{word-break:break-word}.pdf-mode .panel{box-shadow:none}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
+.pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode main{max-width:none;margin:0;padding:0 2px}.pdf-mode table{min-width:0!important;table-layout:fixed;width:100%}.pdf-mode td,.pdf-mode th{word-break:break-word}.pdf-mode .panel{box-shadow:none}.pdf-mode .rolebar{display:none!important}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
 @media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.money{grid-template-columns:1fr 140px}header{padding:16px}.panel{padding:15px}h1{font-size:21px}}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.toolbar button{flex:1}}
 @media print{body{background:#fff}header{background:#fff;color:#111;padding:10px 0;border-bottom:2px solid #222}header .rolebar,.toolbar,.no-print,.sig-actions{display:none!important}main{margin:0;padding:0;max-width:none}.panel{box-shadow:none;break-inside:avoid;border:1px solid #ddd}.field input,.field textarea{border:0;padding-left:0}.status{border:1px solid #999}.signature{border:1px solid #888}}
@@ -158,13 +158,26 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 const $=id=>document.getElementById(id);
 const rupiah=n=>'Rp'+(Number(n)||0).toLocaleString('id-ID');
 let approved=false, signatureDirty=false, drawing=false, last=null;
-function inlineFormValues(doc){
- doc.querySelectorAll('input:not([type=checkbox]):not([type=file]):not([type=radio]),textarea,select').forEach(el=>{
-  const t=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):el.value,d=doc.createElement('div');
-  d.className=el.className;d.textContent=t;
-  d.style.cssText='white-space:pre-wrap;word-break:break-word;min-height:1.5em;font:inherit;color:#20242b;background:#fff;border:1px solid #e4e7ec;border-radius:'+(el.closest('td')?'6px':'7px')+';padding:'+(el.closest('td')?'7px':'9px 10px')+';width:100%';
-  el.replaceWith(d);
+const PDF_W=1100; // lebar tetap (px) untuk membuat PDF, tidak tergantung lebar layar perangkat
+function buildPdfRoot(){
+ const root=document.createElement('div');root.className='pdf-root';
+ root.style.cssText='position:absolute;left:-20000px;top:0;width:'+PDF_W+'px;background:#f4f6f8;color:#20242b;font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif';
+ const sel='input:not([type=checkbox]):not([type=file]):not([type=radio]),textarea,select';
+ [document.querySelector('header'),document.querySelector('main')].forEach(src=>{
+  if(!src)return;const c=src.cloneNode(true),o=[...src.querySelectorAll(sel)],k=[...c.querySelectorAll(sel)];
+  k.forEach((el,n)=>{
+   const so=o[n],t=so.tagName==='SELECT'?((so.options[so.selectedIndex]||{}).text||''):so.value,d=document.createElement('div'),cell=!!el.closest('td');
+   d.className=el.className;d.textContent=t;
+   d.style.cssText='white-space:pre-wrap;word-break:break-word;min-height:1.5em;font:inherit;color:#20242b;background:#fff;border:1px solid #e4e7ec;border-radius:'+(cell?'6px':'7px')+';padding:'+(cell?'7px':'9px 10px')+';width:100%';
+   el.replaceWith(d);
+  });
+  const ob=[...src.querySelectorAll('input[type=checkbox]')],kb=[...c.querySelectorAll('input[type=checkbox]')];
+  kb.forEach((el,n)=>{if(ob[n].checked)el.setAttribute('checked','');else el.removeAttribute('checked')});
+  const oc=[...src.querySelectorAll('canvas')],kc=[...c.querySelectorAll('canvas')];
+  kc.forEach((el,n)=>{const im=document.createElement('img');im.src=oc[n].toDataURL();im.className=el.className;im.style.cssText='display:block;width:100%;height:170px;object-fit:contain';el.replaceWith(im)});
+  root.appendChild(c);
  });
+ document.body.appendChild(root);return root;
 }
 const today=new Date().toISOString().slice(0,10);
 $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;
@@ -214,7 +227,9 @@ const FersansStore={
  async tx(mode,fn){const d=await this.db();return new Promise((res,rej)=>{const t=d.transaction('orders',mode),q=fn(t.objectStore('orders'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})},
  put(rec){return this.tx('readwrite',s=>s.put(rec))},all(){return this.tx('readonly',s=>s.getAll())},del(no){return this.tx('readwrite',s=>s.delete(no))},
  async push(rec){if(!ENDPOINT)return false;let r,j;
-  try{r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)})}catch(e){throw new Error('tidak bisa terhubung ke server. Periksa URL ENDPOINT (harus berakhiran /exec) dan pengaturan akses deployment = Anyone')}
+  try{r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rec)})}catch(e){
+   let reach=false;try{await fetch(ENDPOINT,{mode:'no-cors'});reach=true}catch{}
+   throw new Error(reach?'alamat server ditemukan, tetapi Google membalas dengan halaman error (bukan JSON). Penyebab umum: kode Code.gs belum ada di deployment yang aktif (belum "New version"), izin akses belum disetujui, atau akses deployment bukan "Anyone"':'alamat ENDPOINT tidak bisa dijangkau. Periksa penulisannya (harus berakhiran /exec, tanpa spasi) dan koneksi internet')}
   try{j=await r.json()}catch(e){throw new Error('balasan server bukan JSON (status '+r.status+'). Biasanya deployment belum diizinkan atau belum di-deploy ulang')}
   if(!j.ok)throw new Error('server menolak data: '+(j.error||'tidak diketahui'));return true},
  async save(rec){await this.put(rec);try{this.lastErr='';return await this.push(rec)}catch(e){this.lastErr=e.message;return false}}
@@ -232,8 +247,8 @@ $('approveBtn').onclick=async()=>{
  const btn=$('approveBtn'),no=$('orderNo').value;
  approved=true;applyRole();btn.textContent='Membuat PDF & mengirim…';document.body.classList.add('pdf-mode');window.scrollTo(0,0);
  try{
-  lastPdf=await html2pdf().set({margin:6,filename:no+'.pdf',image:{type:'jpeg',quality:.92},html2canvas:{scale:1.5,windowWidth:1000,scrollX:0,scrollY:0,useCORS:true,onclone:inlineFormValues},jsPDF:{unit:'mm',format:'a4'},pagebreak:{mode:['css','legacy'],avoid:'.panel'}}).from(document.body).outputPdf('blob');
-  document.body.classList.remove('pdf-mode');
+  lastPdf=await html2pdf().set({margin:6,filename:no+'.pdf',image:{type:'jpeg',quality:.92},html2canvas:{scale:1.5,windowWidth:PDF_W,scrollX:0,scrollY:0,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},pagebreak:{mode:['css','legacy'],avoid:['.panel','tr','.signature','.money']}}).from(buildPdfRoot()).outputPdf('blob');
+  document.body.classList.remove('pdf-mode');document.querySelectorAll('.pdf-root').forEach(e=>e.remove());
   const pdf=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(lastPdf)});
   const rec={orderNo:no,createdAt:new Date().toISOString(),customerName:$('customerName').value,company:$('company').value,contact:$('contact').value,total:Number($('grandTotal').textContent.replace(/\D/g,'')),status:'Final Approved',data:fields(),pdf};const remote=await FersansStore.save(rec);
   try{localStorage.removeItem(DRAFT)}catch{}
@@ -246,7 +261,7 @@ $('approveBtn').onclick=async()=>{
    if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Order '+no,text:'E-Approval Order FERSANS '+no});return}catch(e){if(e.name==='AbortError')return}}
    const a=document.createElement('a');a.href=URL.createObjectURL(lastPdf);a.download=no+'.pdf';a.click();
    window.open('https://wa.me/6281319273290?text='+encodeURIComponent('Halo FERSANS, berikut file E-Approval Order '+no+' (PDF terlampir).'),'_blank')};
- }catch(err){document.body.classList.remove('pdf-mode');approved=false;applyRole();btn.textContent='Setujui & Kunci Order';alert('Gagal membuat/mengirim PDF: '+err.message)}
+ }catch(err){document.body.classList.remove('pdf-mode');document.querySelectorAll('.pdf-root').forEach(e=>e.remove());approved=false;applyRole();btn.textContent='Setujui & Kunci Order';alert('Gagal membuat/mengirim PDF: '+err.message)}
 };
 // --- Data kiriman admin (dari tombol "Ekspor Data Order" di index_1.html) ---
 function readHandoff(){
