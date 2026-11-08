@@ -196,3 +196,24 @@ function buildPdfRoot(){
    d.className=el.className;d.textContent=t;
    d.style.cssText='white-space:pre-wrap;word-break:break-word;min-height:1.5em;font:inherit;color:#20242b;background:#fff;border:1px solid #e4e7ec;border-radius:'+(cell?'6px':'7px')+';padding:'+(cell?'7px':'9px 10px')+';width:100%';
    el.replaceWith(d);
+  });
+  const ob=[...src.querySelectorAll('input[type=checkbox]')],kb=[...c.querySelectorAll('input[type=checkbox]')];
+  kb.forEach((el,n)=>{el.checked=ob[n].checked;if(ob[n].checked)el.setAttribute('checked','');else el.removeAttribute('checked')});
+  const oc=[...src.querySelectorAll('canvas')],kc=[...c.querySelectorAll('canvas')];
+  kc.forEach((el,n)=>{const im=document.createElement('img');im.src=oc[n].toDataURL();im.className=el.className;im.style.cssText='display:block;width:100%;height:auto';el.replaceWith(im)});
+  root.appendChild(c);
+ });
+ document.body.appendChild(root);return root;
+}
+async function makePdfBlob(){
+ if(!window.html2canvas||!(window.jspdf&&window.jspdf.jsPDF))throw new Error('Library PDF belum termuat. Periksa koneksi internet lalu coba lagi.');
+ const cover=document.createElement('div');
+ cover.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;align-items:center;justify-content:center;font:600 16px system-ui,sans-serif;color:#20242b';
+ cover.textContent='Membuat PDF, mohon tunggu…';document.body.appendChild(cover);
+ let root=null;
+ try{
+  window.scrollTo(0,0);
+  root=buildPdfRoot();
+  await new Promise(r=>setTimeout(r,150)); // beri waktu browser menata lembar kerja
+  let cuts=[];const SC=2;
+  const
