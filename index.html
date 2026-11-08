@@ -17,6 +17,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 .sub{color:var(--muted)}.status{display:inline-flex;padding:5px 10px;border-radius:30px;background:#fff4df;color:#805b19;font-size:11px;font-weight:800;letter-spacing:.5px}
 .status.approved{background:#e8f6ee;color:var(--green)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .field label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 10px;font:inherit;background:#fff;color:var(--ink)}
+.field textarea{resize:vertical;min-height:70px;font-family:inherit}
 .field input[readonly],.field textarea[readonly]{background:#f7f8fa;color:#394150}
 .tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left}th{font-size:11px;color:var(--muted);background:#fafbfc}td input{width:100%;min-width:65px;border:1px solid var(--line);padding:7px;border-radius:6px}
 .money{display:grid;grid-template-columns:1fr 210px;gap:8px;max-width:460px;margin-left:auto}.money div{padding:5px 0}.money .total{font-size:18px;font-weight:800;border-top:1px solid var(--line);padding-top:10px}
@@ -51,7 +52,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
   <section class="panel">
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
       <div><h1>ORDER SERAGAM</h1><div class="sub">Formulir detail pesanan & persetujuan spesifikasi</div></div>
-      <div style="text-align:right"><span id="status" class="status">DRAFT · MENUNGGU PERSETUJUAN</span><div class="sub" style="font-size:11px;margin-top:7px">Nomor Order: <b id="orderLabel">FRS-0001</b></div></div>
+      <div style="text-align:right"><span id="status" class="status">DRAFT · MENUNGGU PERSETUJUAN</span><div class="sub" style="font-size:11px;margin-top:7px">Nomor Order: <b id="orderLabel">-</b></div></div>
     </div>
     <p class="readonly-note" id="customerHint">Mode penyedia: seluruh detail pesanan dapat diedit sebelum dikirim kepada pemesan.</p>
   </section>
@@ -59,7 +60,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
   <section class="panel">
     <h2>Informasi Pemesanan</h2>
     <div class="grid">
-      <div class="field"><label>Nomor Order</label><input id="orderNo" value="FRS-0001"></div>
+      <div class="field"><label>Nomor Order (otomatis, kombinasi tahun)</label><input id="orderNo" value="" readonly></div>
       <div class="field"><label>Tanggal Order</label><input id="orderDate" type="date"></div>
       <div class="field"><label>Target Penyelesaian</label><input id="dueDate" type="date"></div>
       <div class="field"><label>Kepada / Nama Pemesan</label><input id="customerName" placeholder="Nama pemesan / instansi"></div>
@@ -78,6 +79,10 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
     <h2>Detail Pesanan Seragam</h2>
     <div class="tablewrap"><table id="itemsTable"><thead><tr><th style="width:23%">Nama / Deskripsi</th><th>SKU</th><th>Qty</th><th>Satuan</th><th>Harga</th><th>Total</th><th class="provider-only">Aksi</th></tr></thead><tbody id="items"></tbody></table></div>
     <div class="toolbar no-print provider-only" style="margin:12px 0 0"><button class="secondary" id="addItem">＋ Tambah Item</button></div>
+    <div class="field" style="margin-top:14px">
+      <label>Catatan Tambahan (individu, bukan bagian dari daftar item)</label>
+      <textarea id="orderNotes" rows="3" placeholder="Contoh: bordir nama di dada kanan, packing per ukuran, permintaan khusus, dll."></textarea>
+    </div>
     <div class="money">
       <div>Subtotal</div><div id="subtotal">Rp0</div>
       <div>Diskon</div><div class="field"><input id="discount" type="number" min="0" value="0"></div>
@@ -89,7 +94,9 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
   <section class="panel">
     <h2>Pembayaran</h2>
     <div class="grid">
-      <div class="field"><label>Metode Pembayaran</label><select id="paymentMethod"><option>Transfer</option><option>Cash</option><option>Debit</option></select></div>
+      <div class="field"><label>Metode Pembayaran</label>
+        <select id="paymentMethod"><option>Cash</option><option>Transfer</option><option>Debit</option></select>
+      </div>
       <div class="field"><label>Status Pembayaran</label><select id="paymentStatus"><option>Belum Bayar</option><option>DP (Down Payment)</option><option>Lunas</option></select></div>
       <div class="field"><label>Nominal DP / Pembayaran</label><input id="paid" type="number" min="0" value="0"></div>
       <div class="field"><label>Referensi Pembayaran</label><input id="paymentRef" placeholder="Nomor referensi (opsional)"></div>
@@ -169,8 +176,18 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 const $=id=>document.getElementById(id);
 const rupiah=n=>'Rp'+(Number(n)||0).toLocaleString('id-ID');
 let approved=false, signatureDirty=false, drawing=false, last=null;
+
+/* === Nomor Order otomatis: FRS-YYYY-XXXX (kombinasi tahun) === */
+function newOrderNo(){
+  const y=new Date().getFullYear();
+  const rnd=Math.random().toString(36).slice(2,6).toUpperCase();
+  return 'FRS-'+y+'-'+rnd;
+}
+
 const today=new Date().toISOString().slice(0,10);
 $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;
+if(!$('orderNo').value) $('orderNo').value=newOrderNo();
+
 function addRow(item={name:'',sku:'',qty:1,unit:'pcs',price:0}){
  const tr=document.createElement('tr');
  tr.innerHTML=`<td><input data-k="name" placeholder="Nama / deskripsi"></td><td><input data-k="sku" placeholder="SKU"></td><td><input data-k="qty" type="number" min="0" value="1"></td><td><input data-k="unit" value="pcs"></td><td><input data-k="price" type="number" min="0" value="0"></td><td class="rowtotal">Rp0</td><td class="provider-only"><button class="danger remove">Hapus</button></td>`;
@@ -185,7 +202,7 @@ function calc(){
  $('subtotal').textContent=rupiah(sum);$('grandTotal').textContent=rupiah(total);$('paidView').textContent=rupiah($('paid').value);$('balance').textContent=rupiah(Math.max(0,total-(Number($('paid').value)||0)));
 }
 ['discount','extra','paid'].forEach(id=>$(id).addEventListener('input',calc));
-function fields(){let o={};document.querySelectorAll('main input:not([data-k]):not([type=file]),main select').forEach(e=>{if(e.id)o[e.id]=e.value});o.items=getItems();o.checks=[...document.querySelectorAll('.customer-check')].map(e=>e.checked);o.approved=approved;o.signature=$('signature').toDataURL();return o}
+function fields(){let o={};document.querySelectorAll('main input:not([data-k]):not([type=file]),main select,main textarea').forEach(e=>{if(e.id)o[e.id]=e.value});o.items=getItems();o.checks=[...document.querySelectorAll('.customer-check')].map(e=>e.checked);o.approved=approved;o.signature=$('signature').toDataURL();return o}
 function load(o){
  Object.keys(o).forEach(k=>{let e=$(k);if(e&&typeof o[k]==='string')e.value=o[k]});
  $('items').innerHTML='';(o.items||[]).forEach(addRow);if(!(o.items||[]).length)addRow();
@@ -198,7 +215,7 @@ function updateStatus(){$('status').textContent=approved?'FINAL APPROVED · TERK
 function applyRole(){
  const role=$('role').value, customer=role==='customer';
  document.querySelectorAll('.provider-only').forEach(e=>e.classList.toggle('hidden',customer));
- const providerFields=['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentMethod','paymentStatus','paid','paymentRef','providerName','providerDate'];
+ const providerFields=['orderDate','dueDate','customerName','company','contact','discount','extra','paymentMethod','paymentStatus','paid','paymentRef','orderNotes','providerName','providerDate'];
  providerFields.forEach(id=>{let e=$(id);if(e)e.disabled=customer||approved});
  document.querySelectorAll('#items input').forEach(e=>e.disabled=customer||approved);
  document.querySelectorAll('.customer-check').forEach(e=>e.disabled=!customer||approved);
@@ -216,37 +233,50 @@ function applyRole(){
 $('roleBtn').onclick=()=>applyRole();$('role').onchange=applyRole;
 $('addItem').onclick=()=>{if(!approved)addRow()};
 $('saveBtn').onclick=save;$('printBtn').onclick=()=>window.print();
-$('newBtn').onclick=()=>{if(!confirm('Buat order baru? Data order saat ini akan diganti.'))return;approved=false;document.querySelectorAll('main input').forEach(e=>{if(e.type==='checkbox')e.checked=false;else if(e.id&&!['providerName'].includes(e.id))e.value=''});$('orderNo').value='FRS-'+String(Date.now()).slice(-6);$('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;$('items').innerHTML='';addRow();clearSig();localStorage.removeItem('fersans-order');applyRole()};
-const PEMESAN_PAGE='index_2.html'; // halaman form pemesan (satu folder dengan file ini)
+$('newBtn').onclick=()=>{
+ if(!confirm('Buat order baru? Data order saat ini akan diganti.'))return;
+ approved=false;
+ document.querySelectorAll('main input, main textarea').forEach(e=>{if(e.type==='checkbox')e.checked=false;else if(e.id&&!['providerName','orderNo'].includes(e.id))e.value=''});
+ $('orderNo').value=newOrderNo();
+ $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;
+ $('paymentMethod').value='Cash';
+ $('items').innerHTML='';addRow();clearSig();
+ localStorage.removeItem('fersans-order');
+ applyRole();
+};
+const PEMESAN_PAGE='index_2.html';
 function orderPayload(){
  if(!$('customerName').value.trim()){alert('Isi "Kepada / Nama Pemesan" terlebih dahulu.');return null}
  if(!getItems().some(i=>String(i.name).trim())){alert('Isi minimal satu item pesanan terlebih dahulu.');return null}
  const f=fields(),p={items:f.items};
- ['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentMethod','paymentStatus','paid','paymentRef','providerName','providerDate'].forEach(k=>{if(f[k]!==''&&f[k]!=null)p[k]=f[k]});
+ ['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentMethod','paymentStatus','paid','paymentRef','orderNotes','providerName','providerDate'].forEach(k=>{if(f[k]!==''&&f[k]!=null)p[k]=f[k]});
  return p;
 }
 function encodePayload(p){let bin='';new TextEncoder().encode(JSON.stringify(p)).forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function pemesanLink(p){
- if(location.protocol==='file:'){alert('Link hanya bisa dibagikan jika halaman ini dibuka dari alamat online (misalnya GitHub Pages), bukan dari file di komputer.');return null}
  return new URL(PEMESAN_PAGE,location.href).href.split('#')[0]+'#d='+encodePayload(p);
 }
 $('exportBtn').onclick=()=>{
  const p=orderPayload();if(!p)return;
  try{localStorage.setItem('fersans-handoff',JSON.stringify({t:Date.now(),data:p}))}catch{}
- window.open(new URL(PEMESAN_PAGE,location.href).href.split('#')[0]+'#d='+encodePayload(p),'_blank');
+ window.open(pemesanLink(p),'_blank');
 };
 $('copyLinkBtn').onclick=async()=>{
- const p=orderPayload();if(!p)return;const link=pemesanLink(p);if(!link)return;
- try{await navigator.clipboard.writeText(link);alert('Link pemesan berhasil disalin. Tempel dan kirim ke pemesan.')}
+ const p=orderPayload();if(!p)return;const link=pemesanLink(p);
+ if(location.protocol==='file:'){
+   if(!confirm('Halaman ini dibuka dari file lokal. Link bisa disalin, tetapi hanya akan berfungsi saat index_2.html dibuka di perangkat/browser yang sama atau ketika di-hosting online. Tetap salin?'))return;
+ }
+ try{await navigator.clipboard.writeText(link);alert('Link pemesan berhasil disalin. Data order sudah otomatis tertanam di dalam link.')}
  catch{prompt('Salin link ini lalu kirim ke pemesan:',link)}
 };
 $('waBtn').onclick=()=>{
- const p=orderPayload();if(!p)return;const link=pemesanLink(p);if(!link)return;
+ const p=orderPayload();if(!p)return;const link=pemesanLink(p);
  let n=String(p.contact||'').replace(/\D/g,'');if(n.startsWith('0'))n='62'+n.slice(1);if(n.length<9||n.length>15)n='';
  const msg='Halo '+p.customerName+', berikut link order seragam FERSANS (No. '+(p.orderNo||'-')+'). Mohon dicek, lalu isi tanda tangan dan setujui di halaman berikut:\n'+link;
  window.open('https://wa.me/'+n+'?text='+encodeURIComponent(msg),'_blank');
 };
-$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{load(JSON.parse(await f.text()));alert('Data order berhasil dimuat.')}catch{alert('File JSON tidak valid.')}};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{load(JSON.parse(await f.text()));alert('Data order berhasil dimuat.')}catch{alert('File JSON tidak valid.')}};
 function clearSig(){let c=$('signature').getContext('2d');c.clearRect(0,0,1000,260);signatureDirty=false}
 $('clearSig').onclick=clearSig;
 const canvas=$('signature'),ctx=canvas.getContext('2d');ctx.strokeStyle='#111';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
@@ -260,10 +290,12 @@ $('approveBtn').onclick=()=>{
  if(!$('signerName').value.trim()||!$('signDate').value){alert('Isi nama penanggung jawab dan tanggal persetujuan.');return}
  if(!signatureDirty&&!localStorage.getItem('fersans-order')){alert('Mohon bubuhkan tanda tangan digital terlebih dahulu.');return}
  if(!confirm('Anda menyetujui seluruh spesifikasi dan ketentuan. Setelah disetujui, order akan dikunci. Lanjutkan?'))return;
- approved=true;localStorage.setItem('fersans-order',JSON.stringify(fields()));updateStatus();applyRole();alert('Persetujuan berhasil direkam pada browser ini. Simpan/ekspor data order untuk arsip penyedia.');
+ approved=true;localStorage.setItem('fersans-order',JSON.stringify(fields()));updateStatus();applyRole();
+ alert('Persetujuan berhasil direkam pada browser ini. Simpan/ekspor data order untuk arsip penyedia.');
 };
 $('resetApproval').onclick=()=>{if(!confirm('Reset persetujuan? Lakukan hanya jika ada koreksi sebelum produksi dan persetujuan ulang diperlukan.'))return;approved=false;clearSig();document.querySelectorAll('.customer-check').forEach(e=>e.checked=false);$('signerName').value='';$('signerTitle').value='';$('signDate').value=today;applyRole()};
 $('orderNo').addEventListener('input',updateStatus);
-let saved=localStorage.getItem('fersans-order');if(saved){try{load(JSON.parse(saved))}catch{addRow()}}else{addRow();applyRole()}
+let saved=localStorage.getItem('fersans-order');if(saved){try{load(JSON.parse(saved))}catch{addRow();applyRole()}}else{addRow();applyRole()}
+updateStatus();
 </script>
 </body></html>
