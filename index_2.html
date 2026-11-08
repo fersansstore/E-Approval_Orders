@@ -161,7 +161,7 @@ let approved=false, signatureDirty=false, drawing=false, last=null;
 const PDF_W=1100; // lebar tetap (px) untuk membuat PDF, tidak tergantung lebar layar perangkat
 function buildPdfRoot(){
  const root=document.createElement('div');root.className='pdf-root';
- root.style.cssText='position:absolute;left:-20000px;top:0;width:'+PDF_W+'px;background:#f4f6f8;color:#20242b;font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif';
+ root.style.cssText='width:'+PDF_W+'px;background:#f4f6f8;color:#20242b;font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif';
  const sel='input:not([type=checkbox]):not([type=file]):not([type=radio]),textarea,select';
  [document.querySelector('header'),document.querySelector('main')].forEach(src=>{
   if(!src)return;const c=src.cloneNode(true),o=[...src.querySelectorAll(sel)],k=[...c.querySelectorAll(sel)];
