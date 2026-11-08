@@ -31,15 +31,27 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 
 /* Tambahan spasi pengaman khusus area tanda tangan agar tidak terpotong di PDF A5 */
 .signature-panel {
+  page-break-before: always;
+  break-before: page;
   page-break-inside: avoid;
   break-inside: avoid;
-  padding-top: 15px;
-  margin-top: 25px;
+  padding-top: 25px;
+  margin-top: 35px;
 }
 
 @media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.money{grid-template-columns:1fr 140px}header{padding:16px}.panel{padding:15px}h1{font-size:21px}}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.toolbar button{flex:1}}
-@media print{body{background:#fff}header{background:#fff;color:#111;padding:10px 0;border-bottom:2px solid #222}header .rolebar,.toolbar,.no-print,.sig-actions{display:none!important}main{margin:0;padding:0;max-width:none}.panel{box-shadow:none;break-inside:avoid;border:1px solid #ddd}.field input,.field textarea{border:0;padding-left:0}.status{border:1px solid #999}.signature{border:1px solid #888}}
+@media print{
+  body{background:#fff}
+  header{background:#fff;color:#111;padding:10px 0;border-bottom:2px solid #222}
+  header .rolebar,.toolbar,.no-print,.sig-actions{display:none!important}
+  main{margin:0;padding:0;max-width:none}
+  .panel{box-shadow:none;border:1px solid #ddd}
+  .signature-panel{page-break-before:always;break-before:page;page-break-inside:avoid;break-inside:avoid;margin-top:30px;padding-top:20px}
+  .field input,.field textarea{border:0;padding-left:0}
+  .status{border:1px solid #999}
+  .signature{border:1px solid #888}
+}
 </style>
 </head>
 <body>
@@ -226,12 +238,12 @@ $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=tod
 function addRow(item={name:'',sku:'',qty:1,unit:'pcs',price:0}){
  const tr=document.createElement('tr');
  tr.innerHTML=`<td><input data-k="name" placeholder="Nama / deskripsi" readonly></td><td><input data-k="sku" placeholder="SKU" readonly></td><td><input data-k="qty" type="number" min="0" value="1" readonly></td><td><input data-k="unit" value="pcs" readonly></td><td><input data-k="price" type="number" min="0" value="0" readonly></td><td class="rowtotal">Rp0</td><td class="provider-only" style="display:none"><button class="danger remove" disabled>Hapus</button></td>`;
- tr.querySelectorAll('[data-k]').forEach(el=>{el.value=item[el.dataset.k]??'';el.disabled=true;});
+ tr.querySelectorAll('[data-k]').forEach(el=>{el.value=item[el.dataset.k]??'';el.disabled=true;el.readOnly=true;});
  $('items').appendChild(tr);calc();
 }
-function getItems(){return [...$('items'].rows].map(r=>Object.fromEntries([...r.querySelectorAll('[data-k]')].map(e=>[e.dataset.k,e.type==='number'?Number(e.value):e.value])))}
+function getItems(){return [...$('items').rows].map(r=>Object.fromEntries([...r.querySelectorAll('[data-k]')].map(e=>[e.dataset.k,e.type==='number'?Number(e.value):e.value])))}
 function calc(){
- let sum=0;[...$('items'].rows].forEach(r=>{let q=Number(r.querySelector('[data-k=qty]').value)||0,p=Number(r.querySelector('[data-k=price]').value)||0,t=q*p;sum+=t;r.querySelector('.rowtotal').textContent=rupiah(t)});
+ let sum=0;[...$('items').rows].forEach(r=>{let q=Number(r.querySelector('[data-k=qty]').value)||0,p=Number(r.querySelector('[data-k=price]').value)||0,t=q*p;sum+=t;r.querySelector('.rowtotal').textContent=rupiah(t)});
  let total=Math.max(0,sum-(Number($('discount').value)||0)+(Number($('extra').value)||0));
  $('subtotal').textContent=rupiah(sum);$('grandTotal').textContent=rupiah(total);$('paidView').textContent=rupiah($('paid').value);$('balance').textContent=rupiah(Math.max(0,total-(Number($('paid').value)||0)));
 }
@@ -247,12 +259,12 @@ function updateStatus(){$('status').textContent=approved?'FINAL APPROVED · TERK
 function applyRole(){
  const L=approved;
  ['orderDate','dueDate','customerName','company','contact','discount','extra','paymentStatus','paid','paymentRef','signerName','signerTitle','signDate'].forEach(id=>{let el=$(id);if(el)el.disabled=L;});
- document.querySelectorAll('#items input').forEach(e=>e.disabled=true); // Item pesanan selalu terkunci dari customer
+ document.querySelectorAll('#items input').forEach(e=>{e.disabled=true;e.readOnly=true;}); // Item pesanan selalu terkunci dari customer
  document.querySelectorAll('.customer-check').forEach(e=>e.disabled=L);
  $('signature').style.pointerEvents=L?'none':'auto';$('signature').setAttribute('aria-disabled',String(L));
  $('clearSig').disabled=L;$('addItem').disabled=true;$('approveBtn').disabled=L;updateStatus();
 }
-const newOrderNo=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return 'FRS-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
+const newOrderNo= me=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return 'FRS-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
 function clearSig(){let c=$('signature').getContext('2d');c.clearRect(0,0,c.canvas.width,c.canvas.height);signatureDirty=false}
 $('clearSig').onclick=clearSig;
 const canvas=$('signature'),ctx=canvas.getContext('2d');ctx.strokeStyle='#111';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
