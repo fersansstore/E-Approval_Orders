@@ -27,7 +27,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 .hidden{display:none!important}.readonly-note{font-size:12px;color:var(--muted);margin:0 0 12px}
 .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rolebar select{padding:9px;border-radius:8px;border:1px solid #555;background:#252930;color:#fff}
-.pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
+.pdf-mode .no-print,.pdf-mode .provider-only{display:none!important}.pdf-mode .tablewrap{overflow:visible}.pdf-mode main{max-width:none;margin:0;padding:0 2px}.pdf-mode table{min-width:0!important;table-layout:fixed;width:100%}.pdf-mode td,.pdf-mode th{word-break:break-word}.pdf-mode .panel{box-shadow:none}.pdf-mode input:disabled,.pdf-mode select:disabled{color:#20242b;-webkit-text-fill-color:#20242b;opacity:1;background:#fff}
 @media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.money{grid-template-columns:1fr 140px}header{padding:16px}.panel{padding:15px}h1{font-size:21px}}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.toolbar button{flex:1}}
 @media print{body{background:#fff}header{background:#fff;color:#111;padding:10px 0;border-bottom:2px solid #222}header .rolebar,.toolbar,.no-print,.sig-actions{display:none!important}main{margin:0;padding:0;max-width:none}.panel{box-shadow:none;break-inside:avoid;border:1px solid #ddd}.field input,.field textarea{border:0;padding-left:0}.status{border:1px solid #999}.signature{border:1px solid #888}}
@@ -158,6 +158,14 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
 const $=id=>document.getElementById(id);
 const rupiah=n=>'Rp'+(Number(n)||0).toLocaleString('id-ID');
 let approved=false, signatureDirty=false, drawing=false, last=null;
+function inlineFormValues(doc){
+ doc.querySelectorAll('input:not([type=checkbox]):not([type=file]):not([type=radio]),textarea,select').forEach(el=>{
+  const t=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):el.value,d=doc.createElement('div');
+  d.className=el.className;d.textContent=t;
+  d.style.cssText='white-space:pre-wrap;word-break:break-word;min-height:1.5em;font:inherit;color:#20242b;background:#fff;border:1px solid #e4e7ec;border-radius:'+(el.closest('td')?'6px':'7px')+';padding:'+(el.closest('td')?'7px':'9px 10px')+';width:100%';
+  el.replaceWith(d);
+ });
+}
 const today=new Date().toISOString().slice(0,10);
 $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;
 function addRow(item={name:'',sku:'',qty:1,unit:'pcs',price:0}){
@@ -222,9 +230,9 @@ $('approveBtn').onclick=async()=>{
  if(!signatureDirty){alert('Mohon bubuhkan tanda tangan digital terlebih dahulu.');return}
  if(!confirm('Anda menyetujui seluruh spesifikasi dan ketentuan. Setelah disetujui, order akan dikunci dan PDF dikirim. Lanjutkan?'))return;
  const btn=$('approveBtn'),no=$('orderNo').value;
- approved=true;applyRole();btn.textContent='Membuat PDF & mengirim…';document.body.classList.add('pdf-mode');
+ approved=true;applyRole();btn.textContent='Membuat PDF & mengirim…';document.body.classList.add('pdf-mode');window.scrollTo(0,0);
  try{
-  lastPdf=await html2pdf().set({margin:6,filename:no+'.pdf',image:{type:'jpeg',quality:.92},html2canvas:{scale:1.5,windowWidth:1000,useCORS:true},jsPDF:{unit:'mm',format:'a4'},pagebreak:{mode:['css','legacy'],avoid:'.panel'}}).from(document.body).outputPdf('blob');
+  lastPdf=await html2pdf().set({margin:6,filename:no+'.pdf',image:{type:'jpeg',quality:.92},html2canvas:{scale:1.5,windowWidth:1000,scrollX:0,scrollY:0,useCORS:true,onclone:inlineFormValues},jsPDF:{unit:'mm',format:'a4'},pagebreak:{mode:['css','legacy'],avoid:'.panel'}}).from(document.body).outputPdf('blob');
   document.body.classList.remove('pdf-mode');
   const pdf=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(lastPdf)});
   const rec={orderNo:no,createdAt:new Date().toISOString(),customerName:$('customerName').value,company:$('company').value,contact:$('contact').value,total:Number($('grandTotal').textContent.replace(/\D/g,'')),status:'Final Approved',data:fields(),pdf};const remote=await FersansStore.save(rec);
