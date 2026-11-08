@@ -89,6 +89,7 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
   <section class="panel">
     <h2>Pembayaran</h2>
     <div class="grid">
+      <div class="field"><label>Metode Pembayaran</label><select id="paymentMethod"><option value="Transfer">Transfer</option><option value="Cash">Cash</option><option value="Debit">Debit</option></select></div>
       <div class="field"><label>Status Pembayaran</label><select id="paymentStatus"><option>Belum Bayar</option><option>DP (Down Payment)</option><option>Lunas</option></select></div>
       <div class="field"><label>Nominal DP / Pembayaran</label><input id="paid" type="number" min="0" value="0"></div>
       <div class="field"><label>Referensi Pembayaran</label><input id="paymentRef" placeholder="Nomor referensi (opsional)"></div>
@@ -197,7 +198,7 @@ function updateStatus(){$('status').textContent=approved?'FINAL APPROVED · TERK
 function applyRole(){
  const role=$('role').value, customer=role==='customer';
  document.querySelectorAll('.provider-only').forEach(e=>e.classList.toggle('hidden',customer));
- const providerFields=['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentStatus','paid','paymentRef','providerName','providerDate'];
+ const providerFields=['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentMethod','paymentStatus','paid','paymentRef','providerName','providerDate'];
  providerFields.forEach(id=>{let e=$(id);if(e)e.disabled=customer||approved});
  document.querySelectorAll('#items input').forEach(e=>e.disabled=customer||approved);
  document.querySelectorAll('.customer-check').forEach(e=>e.disabled=!customer||approved);
@@ -221,7 +222,7 @@ function orderPayload(){
  if(!$('customerName').value.trim()){alert('Isi "Kepada / Nama Pemesan" terlebih dahulu.');return null}
  if(!getItems().some(i=>String(i.name).trim())){alert('Isi minimal satu item pesanan terlebih dahulu.');return null}
  const f=fields(),p={items:f.items};
- ['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentStatus','paid','paymentRef','providerName','providerDate'].forEach(k=>{if(f[k]!==''&&f[k]!=null)p[k]=f[k]});
+ ['orderNo','orderDate','dueDate','customerName','company','contact','discount','extra','paymentMethod','paymentStatus','paid','paymentRef','providerName','providerDate'].forEach(k=>{if(f[k]!==''&&f[k]!=null)p[k]=f[k]});
  return p;
 }
 function encodePayload(p){let bin='';new TextEncoder().encode(JSON.stringify(p)).forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
