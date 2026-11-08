@@ -99,13 +99,14 @@ h1{font-size:25px;margin:0 0 4px}h2{font-size:16px;margin:0 0 14px}h3{font-size:
     </div>
   </section>
 
+  <!-- Bagian Pembayaran dikunci (disabled / readonly untuk customer) -->
   <section class="panel">
     <h2>Pembayaran</h2>
     <div class="grid">
-      <div class="field"><label>Metode Pembayaran</label><select id="paymentMethod"><option value="Transfer">Transfer</option><option value="Cash">Cash</option><option value="Debit">Debit</option></select></div>
-      <div class="field"><label>Status Pembayaran</label><select id="paymentStatus"><option>Belum Bayar</option><option>DP (Down Payment)</option><option>Lunas</option></select></div>
-      <div class="field"><label>Nominal DP / Pembayaran</label><input id="paid" type="number" min="0" value="0"></div>
-      <div class="field"><label>Referensi Pembayaran</label><input id="paymentRef" placeholder="Nomor referensi (opsional)"></div>
+      <div class="field"><label>Metode Pembayaran</label><select id="paymentMethod" disabled><option>Transfer</option><option>Cash</option><option>Debit</option></select></div>
+      <div class="field"><label>Status Pembayaran</label><select id="paymentStatus" disabled><option>Belum Bayar</option><option>DP (Down Payment)</option><option>Lunas</option></select></div>
+      <div class="field"><label>Nominal DP / Pembayaran</label><input id="paid" type="number" min="0" value="0" readonly></div>
+      <div class="field"><label>Referensi Pembayaran</label><input id="paymentRef" placeholder="Nomor referensi (opsional)" readonly></div>
     </div>
     <div class="money"><div>Sudah Dibayar</div><div id="paidView">Rp0</div><div>Sisa Pembayaran</div><div id="balance">Rp0</div></div>
     <p class="sub" style="font-size:12px">Pembayaran via Bank: BCA 289 107 1649 · BRI 0070 0100 3106 569 (a.n. MOHAMMAD ATHA AMMAR)</p>
@@ -236,16 +237,15 @@ async function makePdfBlob(){
 }
 const today=new Date().toISOString().slice(0,10);
 $('orderDate').value=today;$('signDate').value=today;$('providerDate').value=today;
-$('paid').addEventListener('input',calc);
 function addRow(item={name:'',sku:'',qty:1,unit:'pcs',price:0}){
  const tr=document.createElement('tr');
  tr.innerHTML=`<td><input data-k="name" placeholder="Nama / deskripsi" readonly></td><td><input data-k="sku" placeholder="SKU" readonly></td><td><input data-k="qty" type="number" min="0" value="1" readonly></td><td><input data-k="unit" value="pcs" readonly></td><td><input data-k="price" type="number" min="0" value="0" readonly></td><td class="rowtotal">Rp0</td><td class="provider-only" style="display:none"><button class="danger remove" disabled>Hapus</button></td>`;
  tr.querySelectorAll('[data-k]').forEach(el=>{el.value=item[el.dataset.k]??'';el.disabled=true;el.readOnly=true;});
  $('items').appendChild(tr);calc();
 }
-function getItems(){return [...$('items'].rows].map(r=>Object.fromEntries([...r.querySelectorAll('[data-k]')].map(e=>[e.dataset.k,e.type==='number'?Number(e.value):e.value])))}
+function getItems(){return [...$('items').rows].map(r=>Object.fromEntries([...r.querySelectorAll('[data-k]').map(e=>[e.dataset.k,e.type==='number'?Number(e.value):e.value])))}
 function calc(){
- let sum=0;[...$('items'].rows].forEach(r=>{let q=Number(r.querySelector('[data-k=qty]').value)||0,p=Number(r.querySelector('[data-k=price]').value)||0,t=q*p;sum+=t;r.querySelector('.rowtotal').textContent=rupiah(t)});
+ let sum=0;[...$('items').rows].forEach(r=>{let q=Number(r.querySelector('[data-k=qty]').value)||0,p=Number(r.querySelector('[data-k=price]').value)||0,t=q*p;sum+=t;r.querySelector('.rowtotal').textContent=rupiah(t)});
  let total=Math.max(0,sum-(Number($('discount').value)||0)+(Number($('extra').value)||0));
  $('subtotal').textContent=rupiah(sum);$('grandTotal').textContent=rupiah(total);$('paidView').textContent=rupiah($('paid').value);$('balance').textContent=rupiah(Math.max(0,total-(Number($('paid').value)||0)));
 }
